@@ -1,11 +1,17 @@
 import googleapiclient.discovery
+import json
 
 def get_channel_videos():
-    # Prompts the user for the API key and the channel ID
+    # Prompt the user for the API key and the channel ID
     api_key = input("Enter your API Key: ")
     channel_id = input("Enter the YouTube Channel ID: ")
 
     youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=api_key)
+
+    def fetch_channel_title(channel_id):
+        # Fetch the channel's title
+        res = youtube.channels().list(id=channel_id, part='snippet').execute()
+        return res['items'][0]['snippet']['title']
 
     def fetch_videos(channel_id):
         # Get the uploads playlist id
@@ -28,10 +34,18 @@ def get_channel_videos():
 
         return videos
 
-    # Fetch videos from the specified channel
+    channel_title = fetch_channel_title(channel_id)
     videos = fetch_videos(channel_id)
-    for video in videos:
-        print(video['snippet']['title'])
+    
+    # Format the filename to remove characters not suitable for filenames
+    safe_channel_title = "".join([c for c in channel_title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+    filename = f"{safe_channel_title}_videos.json"
+    
+    # Save the videos to a JSON file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(videos, f, ensure_ascii=False, indent=4)
+
+    print(f"Video list saved to {filename}")
 
 # Call the function to start the process
 if __name__ == "__main__":
