@@ -77,7 +77,7 @@ Run the script using Python:
 ## bash
 
 ```Copy code
-python YouTubeChannelVideoFetcher.py
+python youtubechannelvideofetcher.py
 ```
 When prompted, enter your API key and the YouTube channel ID you want to fetch videos from.
 
