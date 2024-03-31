@@ -13,6 +13,11 @@ def get_channel_videos():
         res = youtube.channels().list(id=channel_id, part='snippet').execute()
         return res['items'][0]['snippet']['title']
 
+    def fetch_video_details(video_id):
+        # Fetch video details including view count
+        res = youtube.videos().list(id=video_id, part='statistics').execute()
+        return res['items'][0]['statistics']
+
     def fetch_videos(channel_id):
         # Get the uploads playlist id
         res = youtube.channels().list(id=channel_id, part='contentDetails').execute()
@@ -26,7 +31,12 @@ def get_channel_videos():
                                                part='snippet', 
                                                maxResults=50,
                                                pageToken=next_page_token).execute()
-            videos += res['items']
+            for item in res['items']:
+                video_id = item['snippet']['resourceId']['videoId']
+                video_details = fetch_video_details(video_id)
+                item['statistics'] = video_details  # Add video statistics to the item
+                videos.append(item)
+                
             next_page_token = res.get('nextPageToken')
             
             if next_page_token is None:
@@ -41,11 +51,11 @@ def get_channel_videos():
     safe_channel_title = "".join([c for c in channel_title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
     filename = f"{safe_channel_title}_videos.json"
     
-    # Save the videos to a JSON file
+    # Save the videos and their view counts to a JSON file
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(videos, f, ensure_ascii=False, indent=4)
 
-    print(f"Video list saved to {filename}")
+    print(f"Video list with view counts saved to {filename}")
 
 # Call the function to start the process
 if __name__ == "__main__":
