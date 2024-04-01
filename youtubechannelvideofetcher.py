@@ -32,10 +32,18 @@ def get_channel_videos():
                                                maxResults=50,
                                                pageToken=next_page_token).execute()
             for item in res['items']:
-                video_id = item['snippet']['resourceId']['videoId']
+                # Copy the item dict excluding the 'thumbnails' from 'snippet'
+                video_info = item['snippet'].copy()
+                video_info.pop('thumbnails', None)  # Remove thumbnails if exists
+                video_id = video_info['resourceId']['videoId']
                 video_details = fetch_video_details(video_id)
-                item['statistics'] = video_details  # Add video statistics to the item
-                videos.append(item)
+                
+                # Create a new dict for the video excluding thumbnails
+                new_item = {
+                    'snippet': video_info,
+                    'statistics': video_details
+                }
+                videos.append(new_item)
                 
             next_page_token = res.get('nextPageToken')
             
